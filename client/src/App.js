@@ -1,23 +1,33 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import CreateTrip from './components/CreateTrip';
+import TripList from './components/TripList';
 import './App.css';
 
 function App() {
+  const [trips, setTrips] = useState([]);
+
+  useEffect(() => {
+    const fetchTrips = async () => {
+      const response = await fetch('http://localhost:3001/trips');
+      const data = await response.json();
+      setTrips(data);
+    };
+    fetchTrips();
+  }, []);
+
+  const handleTripCreated = (newTrip) => {
+    setTrips([...trips, newTrip]);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>Guys Trip Planner</h1>
       </header>
+      <main>
+        <CreateTrip onTripCreated={handleTripCreated} />
+        <TripList trips={trips} />
+      </main>
     </div>
   );
 }
