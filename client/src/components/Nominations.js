@@ -76,41 +76,58 @@ function Nominations() {
   };
 
   return (
-    <div>
-      <h2>Nominations for Trip {tripId}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={newNomination}
-          onChange={(e) => setNewNomination(e.target.value)}
-          placeholder="Enter a nomination"
-        />
-        <button type="submit">Add Nomination</button>
-      </form>
-      <h3>Current Nominations:</h3>
-      <ul>
-        {nominations.map((nomination) => (
-          <li key={nomination.id}>
-            {editingNominationId === nomination.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingNominationName}
-                  onChange={(e) => setEditingNominationName(e.target.value)}
-                />
-                <button onClick={() => handleSaveEdit(nomination.id)}>Save</button>
-                <button onClick={handleCancelEdit}>Cancel</button>
-              </>
-            ) : (
-              <>
-                {nomination.name}
-                <button onClick={() => handleEditClick(nomination)}>Edit</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-      <button onClick={handleEndNominations}>End Nominations</button>
+    <div className="container">
+      <h2 className="my-4 text-center">Nominations for Trip {tripId}</h2>
+      <div className="card mb-4">
+        <div className="card-body">
+          <h3 className="card-title">Add a Nomination</h3>
+          <form onSubmit={handleSubmit}>
+            <div className="input-group mb-3">
+              <input
+                type="text"
+                className="form-control"
+                value={newNomination}
+                onChange={(e) => setNewNomination(e.target.value)}
+                placeholder="Enter a nomination"
+              />
+              <button type="submit" className="btn btn-primary">Add Nomination</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-body">
+          <h3 className="card-title">Current Nominations:</h3>
+          <ul className="list-group list-group-flush">
+            {nominations.map((nomination) => (
+              <li key={nomination.id} className="list-group-item">
+                {editingNominationId === nomination.id ? (
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingNominationName}
+                      onChange={(e) => setEditingNominationName(e.target.value)}
+                    />
+                    <button onClick={() => handleSaveEdit(nomination.id)} className="btn btn-success">Save</button>
+                    <button onClick={handleCancelEdit} className="btn btn-secondary">Cancel</button>
+                  </div>
+                ) : (
+                  <div className="d-flex justify-content-between align-items-center">
+                    {nomination.name}
+                    <button onClick={() => handleEditClick(nomination)} className="btn btn-outline-primary btn-sm">Edit</button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="text-center mt-4">
+        <button onClick={handleEndNominations} className="btn btn-success">End Nominations</button>
+      </div>
     </div>
   );
 }

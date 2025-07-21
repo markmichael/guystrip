@@ -9,15 +9,11 @@ import './App.css';
 function App() {
   return (
     <Router>
-      <div className="App">
-        <header className="App-header">
-          <h1>Guys Trip Planner</h1>
-          <nav>
-            <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-            </ul>
+      <div className="container mt-4">
+        <header className="text-center mb-4">
+          <h1 className="display-4">Guys Trip Planner</h1>
+          <nav className="nav justify-content-center">
+            <Link to="/" className="nav-link">Home</Link>
           </nav>
         </header>
         <main>

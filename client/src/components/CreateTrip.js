@@ -20,28 +20,36 @@ const CreateTrip = ({ onTripCreated }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create a new trip</h2>
-      <div>
-        <label>Name:</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+    <div className="card mb-4">
+      <div className="card-body">
+        <h2 className="card-title">Create a new trip</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="tripName" className="form-label">Name:</label>
+            <input
+              type="text"
+              className="form-control"
+              id="tripName"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="tripYear" className="form-label">Year:</label>
+            <input
+              type="number"
+              className="form-control"
+              id="tripYear"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary">Create</button>
+        </form>
       </div>
-      <div>
-        <label>Year:</label>
-        <input
-          type="number"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          required
-        />
-      </div>
-      <button type="submit">Create</button>
-    </form>
+    </div>
   );
 };
 

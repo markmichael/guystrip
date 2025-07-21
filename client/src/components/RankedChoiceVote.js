@@ -84,74 +84,94 @@ function RankedChoiceVote() {
   };
 
   return (
-    <div>
-      <h2>Ranked Choice Vote for Trip {tripId}</h2>
+    <div className="container">
+      <h2 className="my-4 text-center">Ranked Choice Vote for Trip {tripId}</h2>
 
       {!showResults ? (
-        <>
-          <h3>Submit Your Vote</h3>
-          <form onSubmit={handleSubmitVote}>
-            <label>
-              Your Name:
-              <input
-                type="text"
-                value={voterName}
-                onChange={(e) => setVoterName(e.target.value)}
-                required
-              />
-            </label>
-            <h4>Rank your top 5 nominations:</h4>
-            """            {[1, 2, 3, 4, 5].map((rank) => (
-              <div key={rank}>
-                <label>
-                  {rank}.
-                  <select
-                    value={rankedChoices[rank] || ''}
-                    onChange={(e) => handleRankChange(rank, e.target.value)}
-                  >
-                    <option value="">Select a nomination</option>
-                    {nominations.map((nom) => (
-                      <option
-                        key={nom.id}
-                        value={nom.id}
-                        disabled={
-                          Object.values(rankedChoices).includes(String(nom.id)) &&
-                          String(rankedChoices[rank]) !== String(nom.id)
-                        }
-                      >
-                        {nom.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+        <div className="row">
+          <div className="col-md-6">
+            <div className="card">
+              <div className="card-body">
+                <h3 className="card-title">Submit Your Vote</h3>
+                <form onSubmit={handleSubmitVote}>
+                  <div className="mb-3">
+                    <label htmlFor="voterName" className="form-label">Your Name:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="voterName"
+                      value={voterName}
+                      onChange={(e) => setVoterName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <h4 className="mb-3">Rank your top 5 nominations:</h4>
+                  {[1, 2, 3, 4, 5].map((rank) => (
+                    <div key={rank} className="mb-2">
+                      <label className="form-label">
+                        {rank}.
+                        <select
+                          className="form-select"
+                          value={rankedChoices[rank] || ''}
+                          onChange={(e) => handleRankChange(rank, e.target.value)}
+                        >
+                          <option value="">Select a nomination</option>
+                          {nominations.map((nom) => (
+                            <option
+                              key={nom.id}
+                              value={nom.id}
+                              disabled={
+                                Object.values(rankedChoices).includes(String(nom.id)) &&
+                                String(rankedChoices[rank]) !== String(nom.id)
+                              }
+                            >
+                              {nom.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  ))}
+                  <button type="submit" className="btn btn-primary mt-3">Submit Vote</button>
+                </form>
               </div>
-            ))}""
-            <button type="submit">Submit Vote</button>
-          </form>
-
-          <h3>Voters:</h3>
-          <ul>
-            {submittedVotes.map((vote) => (
-              <li key={vote.id}>{vote.voter_name}</li>
-            ))}
-          </ul>
-
-          <button onClick={handleViewResults}>View Results</button>
-          <button onClick={handleEndVoting}>End Voting</button>
-        </>
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="card">
+              <div className="card-body">
+                <h3 className="card-title">Voters:</h3>
+                <ul className="list-group list-group-flush">
+                  {submittedVotes.map((vote) => (
+                    <li key={vote.id} className="list-group-item">{vote.voter_name}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="mt-4 text-center">
+              <button onClick={handleViewResults} className="btn btn-info me-2">View Results</button>
+              <button onClick={handleEndVoting} className="btn btn-danger">End Voting</button>
+            </div>
+          </div>
+        </div>
       ) : (
-        <>
+        <div className="text-center">
           <h3>Ranked Choice Vote Results</h3>
-          <ul>
+          <ul className="list-group">
             {results.map(([name, score]) => (
-              <li key={name}>{name}: {score} points</li>
+              <li key={name} className="list-group-item d-flex justify-content-between align-items-center">
+                {name}
+                <span className="badge bg-primary rounded-pill">{score} points</span>
+              </li>
             ))}
           </ul>
-          <button onClick={() => setShowResults(false)}>Hide Results</button>
-        </>
+          <button onClick={() => setShowResults(false)} className="btn btn-secondary mt-3">Hide Results</button>
+        </div>
       )}
 
-      <button onClick={handleReturnToNominations}>Return to Nomination Phase</button>
+      <div className="text-center mt-4">
+        <button onClick={handleReturnToNominations} className="btn btn-warning">Return to Nomination Phase</button>
+      </div>
     </div>
   );
 }
