@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const TripList = ({ trips }) => {
   return (
@@ -7,7 +8,9 @@ const TripList = ({ trips }) => {
       <ul>
         {trips.map((trip) => (
           <li key={trip.id}>
-            {trip.name} ({trip.year})
+            <Link to={`/trips/${trip.id}/nominate`}>
+              {trip.name} ({trip.year})
+            </Link>
           </li>
         ))}
       </ul>
