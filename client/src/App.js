@@ -7,6 +7,26 @@ import RankedChoiceVote from './components/RankedChoiceVote';
 import './App.css';
 
 function App() {
+  const [trips, setTrips] = React.useState([]);
+  const [includeArchived, setIncludeArchived] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchTrips = async () => {
+      const response = await fetch(`http://localhost:3001/trips?includeArchived=${includeArchived}`);
+      const data = await response.json();
+      setTrips(data);
+    };
+    fetchTrips();
+  }, [includeArchived]);
+
+  React.useEffect(() => {
+    localStorage.setItem('trips', JSON.stringify(trips));
+  }, [trips]);
+
+  const handleTripCreated = (newTrip) => {
+    setTrips([...trips, newTrip]);
+  };
+
   return (
     <Router>
       <div className="container mt-4">
@@ -18,7 +38,7 @@ function App() {
         </header>
         <main>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home trips={trips} setTrips={setTrips} onTripCreated={handleTripCreated} includeArchived={includeArchived} setIncludeArchived={setIncludeArchived} />} />
             <Route path="/trips/:tripId/nominate" element={<Nominations />} />
             <Route path="/trips/:tripId/ranked-choice-vote" element={<RankedChoiceVote />} />
           </Routes>
@@ -28,26 +48,11 @@ function App() {
   );
 }
 
-function Home() {
-  const [trips, setTrips] = React.useState([]);
-
-  React.useEffect(() => {
-    const fetchTrips = async () => {
-      const response = await fetch('http://localhost:3001/trips');
-      const data = await response.json();
-      setTrips(data);
-    };
-    fetchTrips();
-  }, []);
-
-  const handleTripCreated = (newTrip) => {
-    setTrips([...trips, newTrip]);
-  };
-
+function Home({ trips, setTrips, onTripCreated, includeArchived, setIncludeArchived }) {
   return (
     <>
-      <CreateTrip onTripCreated={handleTripCreated} />
-      <TripList trips={trips} />
+      <CreateTrip onTripCreated={onTripCreated} />
+      <TripList trips={trips} setTrips={setTrips} includeArchived={includeArchived} setIncludeArchived={setIncludeArchived} />
     </>
   );
 }

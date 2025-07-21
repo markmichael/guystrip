@@ -14,15 +14,7 @@ const pool = new Pool({
   port: 5432,
 });
 
-app.get('/trips', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM trips');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
-  }
-});
+app.get('/trips', async (req, res) => {  try {    const { includeArchived } = req.query;    let query = 'SELECT * FROM trips';    if (includeArchived !== 'true') {      query += ' WHERE status = \'active\'';    }    const result = await pool.query(query);    res.json(result.rows);  } catch (err) {    console.error(err);    res.status(500).send('Server error');  }});
 
 app.post('/trips', async (req, res) => {
   try {
@@ -171,6 +163,41 @@ app.put('/trips/:tripId/revert-to-nomination', async (req, res) => {
     const updatedTrip = await pool.query(
       'UPDATE trips SET stage = $1 WHERE id = $2 RETURNING *',
       ['nomination', tripId]
+    );
+    if (updatedTrip.rows.length === 0) {
+      return res.status(404).send('Trip not found');
+    }
+    res.json(updatedTrip.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.put('/trips/:tripId/rename', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const { name } = req.body;
+    const updatedTrip = await pool.query(
+      'UPDATE trips SET name = $1 WHERE id = $2 RETURNING *',
+      [name, tripId]
+    );
+    if (updatedTrip.rows.length === 0) {
+      return res.status(404).send('Trip not found');
+    }
+    res.json(updatedTrip.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.put('/trips/:tripId/archive', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const updatedTrip = await pool.query(
+      'UPDATE trips SET status = \'archived\' WHERE id = $1 RETURNING *',
+      [tripId]
     );
     if (updatedTrip.rows.length === 0) {
       return res.status(404).send('Trip not found');
