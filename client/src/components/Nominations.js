@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-function Nominations() {
+function Nominations({ currentTrip, refreshTrip }) {
   const { tripId } = useParams();
   const navigate = useNavigate();
   const [nominations, setNominations] = useState([]);
@@ -69,6 +69,7 @@ function Nominations() {
       body: JSON.stringify({ stage: 'ranked-choice-vote' }),
     });
     if (response.ok) {
+      refreshTrip(); // Refresh the parent component's trip data
       navigate(`/trips/${tripId}/ranked-choice-vote`);
     } else {
       console.error('Failed to end nominations');
@@ -77,24 +78,26 @@ function Nominations() {
 
   return (
     <div className="container">
-      <h2 className="my-4 text-center">Nominations for Trip {tripId}</h2>
-      <div className="card mb-4">
-        <div className="card-body">
-          <h3 className="card-title">Add a Nomination</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="input-group mb-3">
-              <input
-                type="text"
-                className="form-control"
-                value={newNomination}
-                onChange={(e) => setNewNomination(e.target.value)}
-                placeholder="Enter a nomination"
-              />
-              <button type="submit" className="btn btn-primary">Add Nomination</button>
-            </div>
-          </form>
+      <h2 className="my-4 text-center">Nominations for Trip {currentTrip.name} ({currentTrip.year})</h2>
+      {currentTrip.stage === 'nomination' && (
+        <div className="card mb-4">
+          <div className="card-body">
+            <h3 className="card-title">Add a Nomination</h3>
+            <form onSubmit={handleSubmit}>
+              <div className="input-group mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={newNomination}
+                  onChange={(e) => setNewNomination(e.target.value)}
+                  placeholder="Enter a nomination"
+                />
+                <button type="submit" className="btn btn-primary">Add Nomination</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="card">
         <div className="card-body">
@@ -102,7 +105,7 @@ function Nominations() {
           <ul className="list-group list-group-flush">
             {nominations.map((nomination) => (
               <li key={nomination.id} className="list-group-item">
-                {editingNominationId === nomination.id ? (
+                {editingNominationId === nomination.id && currentTrip.stage === 'nomination' ? (
                   <div className="input-group">
                     <input
                       type="text"
@@ -116,7 +119,9 @@ function Nominations() {
                 ) : (
                   <div className="d-flex justify-content-between align-items-center">
                     {nomination.name}
-                    <button onClick={() => handleEditClick(nomination)} className="btn btn-outline-primary btn-sm">Edit</button>
+                    {currentTrip.stage === 'nomination' && (
+                      <button onClick={() => handleEditClick(nomination)} className="btn btn-outline-primary btn-sm">Edit</button>
+                    )}
                   </div>
                 )}
               </li>
@@ -125,9 +130,11 @@ function Nominations() {
         </div>
       </div>
 
-      <div className="text-center mt-4">
-        <button onClick={handleEndNominations} className="btn btn-success">End Nominations</button>
-      </div>
+      {currentTrip.stage === 'nomination' && (
+        <div className="text-center mt-4">
+          <button onClick={handleEndNominations} className="btn btn-success">End Nominations</button>
+        </div>
+      )}
     </div>
   );
 }

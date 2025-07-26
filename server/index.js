@@ -16,6 +16,20 @@ const pool = new Pool({
 
 app.get('/trips', async (req, res) => {  try {    const { includeArchived } = req.query;    let query = 'SELECT * FROM trips';    if (includeArchived !== 'true') {      query += ' WHERE status = \'active\'';    }    const result = await pool.query(query);    res.json(result.rows);  } catch (err) {    console.error(err);    res.status(500).send('Server error');  }});
 
+app.get('/trips/:tripId', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const result = await pool.query('SELECT * FROM trips WHERE id = $1', [tripId]);
+    if (result.rows.length === 0) {
+      return res.status(404).send('Trip not found');
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
 app.post('/trips', async (req, res) => {
   try {
     const { name, year } = req.body;
@@ -198,6 +212,106 @@ app.put('/trips/:tripId/archive', async (req, res) => {
     const updatedTrip = await pool.query(
       'UPDATE trips SET status = \'archived\' WHERE id = $1 RETURNING *',
       [tripId]
+    );
+    if (updatedTrip.rows.length === 0) {
+      return res.status(404).send('Trip not found');
+    }
+    res.json(updatedTrip.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/trips/:tripId/final-vote-options', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const votesResult = await pool.query('SELECT ranked_choices FROM ranked_choice_votes WHERE trip_id = $1', [tripId]);
+    const votes = votesResult.rows.map(row => row.ranked_choices);
+
+    const nominationsResult = await pool.query('SELECT id, name FROM nominations WHERE trip_id = $1', [tripId]);
+    const nominationIdToName = nominationsResult.rows.reduce((acc, row) => {
+      acc[row.id] = row.name;
+      return acc;
+    }, {});
+
+    const nominationScores = {};
+
+    votes.forEach(vote => {
+      for (const rank in vote) {
+        const nominationId = vote[rank];
+        const nominationName = nominationIdToName[nominationId];
+        const points = 6 - parseInt(rank); // 5 points for 1st, 4 for 2nd, etc.
+        nominationScores[nominationName] = (nominationScores[nominationName] || 0) + points;
+      }
+    });
+
+    const sortedResults = Object.entries(nominationScores).sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
+
+    // Get top 3 nominations
+    const top3Nominations = sortedResults.slice(0, 3).map(([name, score]) => {
+      const id = Object.keys(nominationIdToName).find(key => nominationIdToName[key] === name);
+      return { id: parseInt(id), name, score };
+    });
+
+    res.json(top3Nominations);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/trips/:tripId/final-vote', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const { voter_name, final_choice_id } = req.body;
+    const newVote = await pool.query(
+      'INSERT INTO final_votes (trip_id, voter_name, final_choice_id) VALUES ($1, $2, $3) RETURNING *',
+      [tripId, voter_name, final_choice_id]
+    );
+    res.json(newVote.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/trips/:tripId/final-vote-results', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const votesResult = await pool.query('SELECT final_choice_id FROM final_votes WHERE trip_id = $1', [tripId]);
+    const votes = votesResult.rows.map(row => row.final_choice_id);
+
+    const nominationNamesResult = await pool.query('SELECT id, name FROM nominations WHERE trip_id = $1', [tripId]);
+    const nominationIdToName = nominationNamesResult.rows.reduce((acc, row) => {
+      acc[row.id] = row.name;
+      return acc;
+    }, {});
+
+    const voteCounts = {};
+    votes.forEach(choiceId => {
+      const nominationName = nominationIdToName[choiceId];
+      voteCounts[nominationName] = (voteCounts[nominationName] || 0) + 1;
+    });
+
+    const sortedResults = Object.entries(voteCounts).sort(([, countA], [, countB]) => countB - countA);
+
+    res.json(sortedResults);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+app.put('/trips/:tripId/revert-to-ranked-choice', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    // Delete final vote data for this trip
+    await pool.query('DELETE FROM final_votes WHERE trip_id = $1', [tripId]);
+    // Update trip stage to ranked-choice-vote
+    const updatedTrip = await pool.query(
+      'UPDATE trips SET stage = $1 WHERE id = $2 RETURNING *',
+      ['ranked-choice-vote', tripId]
     );
     if (updatedTrip.rows.length === 0) {
       return res.status(404).send('Trip not found');

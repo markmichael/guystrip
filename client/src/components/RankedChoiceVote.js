@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-function RankedChoiceVote() {
+function RankedChoiceVote({ currentTrip, refreshTrip }) {
   const { tripId } = useParams();
   const navigate = useNavigate();
   const [nominations, setNominations] = useState([]);
@@ -22,9 +22,14 @@ function RankedChoiceVote() {
       const votesResponse = await fetch(`http://localhost:3001/trips/${tripId}/ranked-choice-votes`); // Assuming an endpoint to get all votes
       const votesData = await votesResponse.json();
       setSubmittedVotes(votesData);
+
+      // If not in ranked-choice-vote stage, show results by default
+      if (currentTrip.stage !== 'ranked-choice-vote') {
+        handleViewResults();
+      }
     };
     fetchData();
-  }, [tripId]);
+  }, [tripId, currentTrip.stage]);
 
   const handleRankChange = (rank, nominationId) => {
     setRankedChoices((prevChoices) => ({
@@ -62,9 +67,21 @@ function RankedChoiceVote() {
   };
 
   const handleEndVoting = async () => {
-    // Implement logic to end voting and potentially move to next phase
-    // For now, just a placeholder
-    alert('Voting ended!');
+    if (window.confirm('Are you sure you want to end ranked choice voting and proceed to the final vote?')) {
+      const response = await fetch(`http://localhost:3001/trips/${tripId}/stage`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stage: 'final-vote' }),
+      });
+      if (response.ok) {
+        refreshTrip();
+        navigate(`/trips/${tripId}/final-vote`);
+      } else {
+        console.error('Failed to end ranked choice voting');
+      }
+    }
   };
 
   const handleReturnToNominations = async () => {
@@ -76,6 +93,7 @@ function RankedChoiceVote() {
         },
       });
       if (response.ok) {
+        refreshTrip();
         navigate(`/trips/${tripId}/nominate`);
       } else {
         console.error('Failed to return to nominations');
@@ -85,9 +103,9 @@ function RankedChoiceVote() {
 
   return (
     <div className="container">
-      <h2 className="my-4 text-center">Ranked Choice Vote for Trip {tripId}</h2>
+      <h2 className="my-4 text-center">Ranked Choice Vote for Trip {currentTrip.name} ({currentTrip.year})</h2>
 
-      {!showResults ? (
+      {currentTrip.stage === 'ranked-choice-vote' && !showResults ? (
         <div className="row">
           <div className="col-md-6">
             <div className="card">
@@ -150,7 +168,7 @@ function RankedChoiceVote() {
             </div>
             <div className="mt-4 text-center">
               <button onClick={handleViewResults} className="btn btn-info me-2">View Results</button>
-              <button onClick={handleEndVoting} className="btn btn-danger">End Voting</button>
+              <button onClick={handleEndVoting} className="btn btn-success">End Ranked Choice Voting and Proceed to Final Vote</button>
             </div>
           </div>
         </div>
@@ -165,13 +183,17 @@ function RankedChoiceVote() {
               </li>
             ))}
           </ul>
-          <button onClick={() => setShowResults(false)} className="btn btn-secondary mt-3">Hide Results</button>
+          {currentTrip.stage === 'ranked-choice-vote' && (
+            <button onClick={() => setShowResults(false)} className="btn btn-secondary mt-3">Hide Results</button>
+          )}
         </div>
       )}
 
-      <div className="text-center mt-4">
-        <button onClick={handleReturnToNominations} className="btn btn-warning">Return to Nomination Phase</button>
-      </div>
+      {currentTrip.stage === 'nomination' && (
+        <div className="text-center mt-4">
+          <button onClick={handleReturnToNominations} className="btn btn-warning">Return to Nomination Phase</button>
+        </div>
+      )}
     </div>
   );
 }

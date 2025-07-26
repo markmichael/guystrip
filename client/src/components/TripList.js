@@ -46,7 +46,7 @@ const TripList = ({ trips, setTrips, includeArchived, setIncludeArchived }) => {
       <ul className="list-group list-group-flush">
         {trips.map((trip) => (
           <li key={trip.id} className="list-group-item d-flex justify-content-between align-items-center">
-            <Link to={`/trips/${trip.id}/nominate`}>
+            <Link to={`/trips/${trip.id}/${trip.stage === 'nomination' ? 'nominate' : trip.stage}`}>
               {trip.name} ({trip.year})
             </Link>
             <div>

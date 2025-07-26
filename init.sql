@@ -18,3 +18,10 @@ CREATE TABLE ranked_choice_votes (
   voter_name VARCHAR(255) NOT NULL,
   ranked_choices JSONB NOT NULL
 );
+
+CREATE TABLE final_votes (
+  id SERIAL PRIMARY KEY,
+  trip_id INT REFERENCES trips(id),
+  voter_name VARCHAR(255) NOT NULL,
+  final_choice_id INT NOT NULL
+);

@@ -4,6 +4,9 @@ import CreateTrip from './components/CreateTrip';
 import TripList from './components/TripList';
 import Nominations from './components/Nominations';
 import RankedChoiceVote from './components/RankedChoiceVote';
+import FinalVote from './components/FinalVote';
+import TripPageLayout from './components/TripPageLayout';
+import Sidebar from './components/Sidebar';
 import './App.css';
 
 function App() {
@@ -39,8 +42,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home trips={trips} setTrips={setTrips} onTripCreated={handleTripCreated} includeArchived={includeArchived} setIncludeArchived={setIncludeArchived} />} />
-            <Route path="/trips/:tripId/nominate" element={<Nominations />} />
-            <Route path="/trips/:tripId/ranked-choice-vote" element={<RankedChoiceVote />} />
+            <Route path="/trips/:tripId/*" element={<TripPageLayout />} />
           </Routes>
         </main>
       </div>
